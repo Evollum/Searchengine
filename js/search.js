@@ -10,17 +10,17 @@
   var TOOLS = {
     arcgis: {
       label: "ArcGIS Pro",
-      formats: ["FGDB", "Feature Service", "Image Service", "Vector Tiles", "GeoTIFF", "GeoPackage", "Shapefile", "WMS", "WFS", "WCS", "NetCDF", "CSV", "XLSX", "GeoJSON", "LAZ", "JP2", "HDF", "GRIB", "ESRI ASCII"],
+      formats: ["FGDB", "Feature Service", "Image Service", "Vector Tiles", "GeoTIFF", "GeoPackage", "Shapefile", "WMS", "WFS", "WCS", "NetCDF", "CSV", "XLSX", "GeoJSON", "LAZ", "JP2", "HDF", "GRIB", "ESRI ASCII", "SpatiaLite"],
       keywords: ["arcgis", "arcgis pro", "esri", "arcmap", "arcpy"]
     },
     qgis: {
       label: "QGIS",
-      formats: ["GeoPackage", "GeoTIFF", "Shapefile", "GeoJSON", "WMS", "WFS", "WCS", "FGDB", "CSV", "NetCDF", "GeoParquet", "LAZ", "PBF", "XLSX", "SOSI", "JP2", "TopoJSON", "ESRI ASCII", "GML", "PostGIS"],
+      formats: ["GeoPackage", "GeoTIFF", "Shapefile", "GeoJSON", "WMS", "WFS", "WCS", "FGDB", "CSV", "NetCDF", "GeoParquet", "LAZ", "PBF", "XLSX", "SOSI", "JP2", "TopoJSON", "ESRI ASCII", "GML", "PostGIS", "SpatiaLite"],
       keywords: ["qgis"]
     },
     vscode: {
       label: "VS Code / Python",
-      formats: ["CSV", "Parquet", "GeoParquet", "GeoJSON", "GeoPackage", "JSON", "REST API", "NetCDF", "GeoTIFF", "Shapefile", "FGDB", "JSON-stat", "STAC API", "XLSX", "TSV", "GTFS", "LAZ", "OPeNDAP", "GRIB", "HDF", "PBF", "ARFF"],
+      formats: ["CSV", "Parquet", "GeoParquet", "GeoJSON", "GeoPackage", "JSON", "REST API", "NetCDF", "GeoTIFF", "Shapefile", "FGDB", "JSON-stat", "STAC API", "XLSX", "TSV", "GTFS", "LAZ", "OPeNDAP", "GRIB", "HDF", "PBF", "ARFF", "SpatiaLite", "XML"],
       keywords: ["vs code", "vscode", "visual studio code", "python", "jupyter", "notebook", "pandas", "geopandas", "kode", "code", "script", "programmering"]
     },
     excel: {
@@ -41,7 +41,7 @@
   };
 
   var REGIONS = {
-    Norge: ["norge", "norsk", "norske", "norway", "norwegian", "oslo", "bergen", "trondheim", "stavanger", "tromsø", "kommune", "fylke", "vestland", "viken", "nordland", "innlandet", "agder", "rogaland", "finnmark", "troms"],
+    Norge: ["norge", "norsk", "norske", "norway", "norwegian", "oslo", "bergen", "trondheim", "stavanger", "tromsø", "kommune", "fylke", "vestland", "viken", "nordland", "innlandet", "agder", "rogaland", "finnmark", "troms", "e6", "e18", "e39", "e16", "e134", "riksvei", "riksveg", "fylkesvei", "fylkesveg", "vegvesen"],
     Europa: ["europa", "europe", "eu", "europeisk", "european", "sverige", "danmark", "finland", "tyskland"],
     Global: ["global", "verden", "world", "worldwide", "alle land", "internasjonal"]
   };
@@ -66,8 +66,37 @@
     vei: ["veg", "road", "vegnett", "transport", "trafikk"],
     veg: ["vei", "road", "vegnett"],
     road: ["vei", "veg"],
-    trafikk: ["traffic", "vei", "ådt", "ulykker"],
-    ulykker: ["trafikkulykker", "accidents"],
+    trafikk: ["traffic", "trafikkmengde", "ådt", "ulykker", "vei"],
+    trafikkmengde: ["trafikkvolum", "ådt", "traffic volume", "tellepunkt"],
+    "trafikkvolum": ["trafikkmengde", "ådt"],
+    "ådt": ["årsdøgntrafikk", "trafikkmengde", "aadf"],
+    "årsdøgntrafikk": ["ådt", "trafikkmengde"],
+    trafikkteller: ["tellepunkt", "trafikkmengde"],
+    "tellepunkt": ["trafikkteller", "registreringspunkt", "trafikkmengde"],
+    "kø": ["congestion", "reisetid", "rushtid", "trafikkmengde"],
+    rushtid: ["kø", "timetrafikk", "trafikkmengde"],
+    reisetid: ["travel time", "kjøretid", "kø", "nettverksanalyse"],
+    "kjøretid": ["reisetid", "nettverksanalyse", "ruteplan"],
+    nettverksanalyse: ["vegnett", "ruting", "routing", "network analyst", "kjøretid"],
+    ruting: ["routing", "nettverksanalyse", "ruteplan"],
+    vegnett: ["vei", "road network", "nettverksanalyse"],
+    trafikksikkerhet: ["trafikkulykker", "ulykker", "road safety"],
+    trafikkulykker: ["ulykker", "accidents", "trafikksikkerhet"],
+    sykkel: ["bysykkel", "sykkeltelling", "bike"],
+    bysykkel: ["sykkel", "bike sharing", "gbfs"],
+    fly: ["flytrafikk", "flyplass", "flights"],
+    flytrafikk: ["fly", "air traffic"],
+    flyplass: ["fly", "airport"],
+    skip: ["ais", "skipstrafikk", "shipping"],
+    skipstrafikk: ["ais", "skip"],
+    ais: ["skip", "skipstrafikk"],
+    elbil: ["lading", "ladestasjon", "electric vehicles", "bilpark"],
+    lading: ["ladestasjon", "elbil"],
+    bil: ["bilpark", "kjøretøy", "personbil", "vei"],
+    "kjøretøy": ["bilpark", "vehicles"],
+    "støy": ["noise", "støysone"],
+    mobilitet: ["mobility", "kollektiv", "bysykkel", "trafikk"],
+    ulykker: ["trafikkulykker", "accidents", "trafikksikkerhet"],
     kollektiv: ["buss", "tog", "gtfs", "transit", "holdeplass"],
     buss: ["kollektiv", "gtfs", "holdeplass"],
     tog: ["jernbane", "kollektiv", "gtfs"],
@@ -228,11 +257,15 @@
       // Norske sammensetninger og bøyninger: "flomsoner" → "flom", "veier" → "vei".
       if (!SYNONYMS[t]) {
         Object.keys(SYNONYMS).forEach(function (key) {
-          if (key === t || t.indexOf(key) !== 0) return;
+          if (key === t) return;
           var rest = t.length - key.length;
-          if (key.length >= 4 || rest <= 3) {
+          if (t.indexOf(key) === 0 && (key.length >= 4 || rest <= 3)) {
             out.push({ term: key, weight: 0.8 });
             SYNONYMS[key].forEach(function (s) { out.push({ term: normalize(s), weight: 0.45 }); });
+          } else if (key.length >= 3 && rest >= 3 && t.slice(-key.length) === key) {
+            // Hovedordet står sist: "trafikkstøy" handler om støy.
+            out.push({ term: key, weight: 0.9 });
+            SYNONYMS[key].forEach(function (s) { out.push({ term: normalize(s), weight: 0.5 }); });
           }
         });
       }

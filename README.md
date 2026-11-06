@@ -38,10 +38,29 @@ Søk kan deles via URL, f.eks. `index.html?q=flomsoner&tool=arcgis`.
 
 ## Katalogen
 
-Rundt 50 håndplukkede kilder – norske (Kartverket/Geonorge, SSB, NVE, NGU,
+Rundt 65 håndplukkede kilder – norske (Kartverket/Geonorge, SSB, NVE, NGU,
 Miljødirektoratet, MET, NIBIO, Statens vegvesen, Entur, Artsdatabanken m.fl.),
 europeiske (Copernicus, Eurostat, EMODnet) og globale (OpenStreetMap, Overture,
 Natural Earth, NASA, USGS, World Bank, Our World in Data, Hugging Face, Kaggle …).
+
+### Trafikk
+
+Trafikk er et eget fagområde med datasett for:
+
+| Behov | Datasett |
+|---|---|
+| Trafikkmengde / ÅDT / rushtid | Trafikkdata.no (Statens vegvesen, GraphQL-API), NVDB, UK Road Traffic Statistics |
+| Nettverksanalyse (kjøretid, serviceområder, nærmeste anlegg) | NVDB Ruteplan nettverksdatasett (klar for ArcGIS Network Analyst) |
+| Sanntid: hendelser, vegarbeid, reisetider | DATEX II (Statens vegvesen) |
+| Trafikkulykker og trafikksikkerhet | SSB vegtrafikkulykker, NVDB, NHTSA FARS |
+| Kollektiv, sykkel og mikromobilitet | Entur (GTFS/NeTEx), Bysykkel (Oslo/Bergen/Trondheim), Mobility Database |
+| Bil og elbil | SSB bilparken, NOBIL ladestasjoner |
+| Fly og skip | Avinor flydata, OpenSky Network, AIS (Kystverket/BarentsWatch) |
+| Støy | Støykart for vegtrafikk |
+| Maskinlæring / trafikkprognoser | Caltrans PeMS, NYC Taxi |
+
+Flere av disse har egne kodeeksempler (f.eks. GraphQL-spørring mot Trafikkdata,
+bysykkelturer med pandas, rutegraf med networkx) og egne ArcGIS-steg for Network Analyst.
 
 ### Legge til et datasett
 

@@ -93,6 +93,39 @@ test("nonsens gir ingen treff", function () {
   assert.strictEqual(S.search(DATA, { query: "qwxzzy" }).results.length, 0);
 });
 
+console.log("Trafikk");
+function topIds(q, why, tool, n) { return ids(S.search(DATA, { query: q, purposeText: why || "", tool: tool || "" }), n || 3); }
+test("«trafikkmengde» gir trafikkdata.no øverst", function () {
+  assert.strictEqual(topIds("trafikkmengde")[0], "trafikkdata");
+});
+test("«ÅDT» finner trafikkdata og NVDB", function () {
+  var t = topIds("ådt", "", "", 3);
+  assert.ok(t.indexOf("trafikkdata") !== -1 && t.indexOf("nvdb") !== -1, t.join(","));
+});
+test("«kjøretid» + ArcGIS gir rutbart vegnett øverst", function () {
+  assert.strictEqual(topIds("kjøretid til sykehus", "nettverksanalyse i ArcGIS Pro")[0], "nvdb-ruteplan");
+});
+test("«trafikkulykker» finner SSB og NVDB", function () {
+  var t = topIds("trafikkulykker", "", "", 4);
+  assert.ok(t.indexOf("ssb-ulykker") !== -1 && t.indexOf("nvdb") !== -1, t.join(","));
+});
+test("«bysykkel» gir bysykkeldata øverst", function () {
+  assert.strictEqual(topIds("bysykkel")[0], "bysykkel");
+});
+test("«elbil lading» gir NOBIL øverst", function () {
+  assert.strictEqual(topIds("elbil lading")[0], "nobil");
+});
+test("«skipstrafikk» gir AIS øverst", function () {
+  assert.strictEqual(topIds("skipstrafikk")[0], "kystverket-ais");
+});
+test("trafikkprognose med maskinlæring finner PeMS", function () {
+  assert.ok(topIds("trafikkprognose", "maskinlæring", "", 3).indexOf("pems") !== -1);
+});
+test("«kø» finner sanntids-/trafikkdata", function () {
+  var t = topIds("kø", "", "", 3);
+  assert.ok(t.indexOf("vegvesen-datex") !== -1 || t.indexOf("trafikkdata") !== -1, t.join(","));
+});
+
 console.log("Veiledninger");
 test("hvert datasett har veiledning for alle verktøy", function () {
   DATA.forEach(function (d) {
@@ -110,6 +143,15 @@ test("VS Code gir Python-kode for filbaserte datasett", function () {
 test("ArcGIS Pro velger FGDB når tilgjengelig", function () {
   var d = DATA.filter(function (x) { return x.id === "n50-kartdata"; })[0];
   assert.strictEqual(HowTo.forTool(d, "arcgis").format, "FGDB");
+});
+
+test("trafikkdata har GraphQL-kode for Python", function () {
+  var d = DATA.filter(function (x) { return x.id === "trafikkdata"; })[0];
+  assert.ok(/trafficRegistrationPoints/.test(HowTo.forTool(d, "vscode").code.code));
+});
+test("NVDB ruteplan gir Network Analyst-steg i ArcGIS", function () {
+  var d = DATA.filter(function (x) { return x.id === "nvdb-ruteplan"; })[0];
+  assert.ok(HowTo.forTool(d, "arcgis").steps.join(" ").indexOf("Network Analys") !== -1);
 });
 
 console.log("\n" + passed + " tester bestått" + (process.exitCode ? " – NOEN FEILET" : ""));

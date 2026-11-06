@@ -28,7 +28,14 @@
     "HDF": function () { return ["Map → «Add Data» → velg .hdf/.h5 og velg sub-datasett.", "Eller «Extract Subdataset»."]; },
     "GRIB": function () { return ["Multidimension → «Add Multidimensional Raster Layer» støtter GRIB."]; },
     "JP2": function () { return ["Map → «Add Data» → velg .jp2 (Sentinel-2-bånd ligger i IMG_DATA).", "Lag fargebilde med «Composite Bands»."]; },
-    "ESRI ASCII": function () { return ["Bruk «ASCII To Raster»."]; }
+    "ESRI ASCII": function () { return ["Bruk «ASCII To Raster»."]; },
+    "SpatiaLite": function () { return ["Map → «Add Data» → velg .sqlite-filen (ArcGIS Pro leser SpatiaLite skrivebeskyttet).", "Eksporter til filgeodatabase for analyse."]; }
+  };
+
+  var ARCGIS_SPECIAL = {
+    "nvdb-ruteplan": ["Last ned FGDB-versjonen fra Geonorge (handlekurv → velg «ESRI filgeodatabase»).", "Legg til .gdb i Catalog og åpne feature-datasettet – nettverksdatasettet ligger klart.", "Analysis → «Network Analysis» → velg nettverksdatasettet som kilde.", "Velg analysetype: «Route» (kjøretid A→B), «Service Area» (hvor langt når man på 10 min), «Closest Facility» (nærmeste sykehus/brannstasjon) eller «OD Cost Matrix».", "Krever Network Analyst-lisens (inngår i de fleste studentlisenser)."],
+    "trafikkdata": ["Søk opp tellepunktet på trafikkdata.atlas.vegvesen.no og last ned CSV (time-/døgnverdier).", "Map → «Add Data» → velg CSV.", "Tellepunkter som kartlag: hent koordinater via API-et (se VS Code-fanen) og bruk «XY Table To Point».", "Visualiser ÅDT med «Graduated Symbols» eller koble til vegnett med «Spatial Join»."],
+    "nvdb": ["Gå til vegkart.atlas.vegvesen.no, velg vegobjekttype (f.eks. Fartsgrense, Trafikkmengde, Trafikkulykke) og område.", "Eksporter som Excel/CSV med koordinater, eller som GeoJSON.", "GeoJSON → «JSON To Features». CSV → «XY Table To Point» (EUREF89 UTM33, EPSG:25833)."]
   };
 
   var QGIS = {
@@ -51,7 +58,8 @@
     "GML": function () { return ["Dra .gml-filen inn i QGIS."]; },
     "TopoJSON": function () { return ["Dra .topojson-filen inn i QGIS."]; },
     "JP2": function () { return ["Dra .jp2-båndene inn i QGIS; lag fargebilde med Raster → Miscellaneous → Merge/Build Virtual Raster (separate bands)."]; },
-    "ESRI ASCII": function () { return ["Dra .asc-filen inn i QGIS."]; }
+    "ESRI ASCII": function () { return ["Dra .asc-filen inn i QGIS."]; },
+    "SpatiaLite": function () { return ["Browser → høyreklikk «SpatiaLite» → New Connection → velg .sqlite-filen.", "Nettverksanalyse: Processing Toolbox → «Network analysis» → «Shortest path» / «Service area»."]; }
   };
 
   var PY = {
@@ -76,11 +84,17 @@
     "STAC API": function () { return { lang: "python", install: "pip install pystac-client", code: "from pystac_client import Client\n\ncat = Client.open(\"https://stac.dataspace.copernicus.eu/v1\")\nitems = cat.search(collections=[\"sentinel-2-l2a\"],\n                   bbox=[10.6, 59.85, 10.9, 60.0],  # Oslo\n                   datetime=\"2024-06-01/2024-08-31\",\n                   max_items=5).item_collection()\nfor it in items:\n    print(it.id, it.properties.get(\"eo:cloud_cover\"))" }; },
     "REST API": function (ds) { return { lang: "python", install: "pip install requests pandas", code: "import requests\nimport pandas as pd\n\n# Dokumentasjon: " + (ds.api || ds.url) + "\nr = requests.get(\"" + (ds.api || ds.url) + "\", timeout=30)\nr.raise_for_status()\ndata = r.json()\n# df = pd.json_normalize(data)" }; },
     "JSON": function (ds) { return { lang: "python", install: "pip install pandas", code: "import json, pandas as pd\n\nwith open(\"" + fileName(ds, ".json") + "\") as f:\n    data = json.load(f)\ndf = pd.json_normalize(data)\nprint(df.head())" }; },
+    "SpatiaLite": function (ds) { return { lang: "python", install: "pip install geopandas networkx", code: "import geopandas as gpd\nimport pyogrio\n\npath = \"" + fileName(ds, ".sqlite") + "\"\nprint(pyogrio.list_layers(path))\nveg = gpd.read_file(path, layer=0)\nprint(veg.columns)" }; },
+    "XML": function (ds) { return { lang: "python", install: "pip install requests lxml pandas", code: "import requests\nimport pandas as pd\n\n# Dokumentasjon: " + (ds.api || ds.url) + "\nr = requests.get(\"" + ds.url + "\", timeout=30)\ndf = pd.read_xml(r.content)\nprint(df.head())" }; },
     "ARFF": function (ds) { return { lang: "python", install: "pip install scipy pandas", code: "from scipy.io import arff\nimport pandas as pd\n\ndata, meta = arff.loadarff(\"" + fileName(ds, ".arff") + "\")\ndf = pd.DataFrame(data)" }; }
   };
 
   // Spesialtilpassede Python-snippets for kjente datasett
   var PY_SPECIAL = {
+    trafikkdata: { lang: "python", install: "pip install requests pandas", code: "import requests, pandas as pd\n\nAPI = \"https://trafikkdata-api.atlas.vegvesen.no/\"\n\n# 1) Finn tellepunkter (her: Oslo, fylke 3)\nq_points = \"\"\"{ trafficRegistrationPoints(searchQuery: {countyNumbers: [3]}) {\n  id name location { coordinates { latLon { lat lon } } } } }\"\"\"\npoints = requests.post(API, json={\"query\": q_points}).json()[\"data\"][\"trafficRegistrationPoints\"]\nprint(len(points), points[0])\n\n# 2) Timetrafikk for ett punkt (bytt ID – finn den på trafikkdata.no)\nq_vol = \"\"\"{ trafficData(trafficRegistrationPointId: \"%s\") { volume { byHour(\n  from: \"2024-09-02T00:00:00+02:00\", to: \"2024-09-09T00:00:00+02:00\") {\n  edges { node { from total { volumeNumbers { volume } } } } } } } }\"\"\" % points[0][\"id\"]\nedges = requests.post(API, json={\"query\": q_vol}).json()[\"data\"][\"trafficData\"][\"volume\"][\"byHour\"][\"edges\"]\ndf = pd.DataFrame([{\"tid\": e[\"node\"][\"from\"],\n                    \"antall\": (e[\"node\"][\"total\"][\"volumeNumbers\"] or {}).get(\"volume\")} for e in edges])\ndf[\"tid\"] = pd.to_datetime(df[\"tid\"], utc=True)\ndf.set_index(\"tid\")[\"antall\"].plot(title=\"Kjøretøy per time\")" },
+    bysykkel: { lang: "python", install: "pip install pandas requests", code: "import pandas as pd, requests\n\n# Historiske turer – én fil per måned\ntrips = pd.read_csv(\"https://data.urbansharing.com/oslobysykkel.no/trips/v1/2024/06.csv\")\nprint(trips[[\"start_station_name\", \"end_station_name\", \"duration\"]].head())\nprint(trips.start_station_name.value_counts().head(10))\n\n# Sanntid (GBFS) – oppgi et Client-Identifier\nh = {\"Client-Identifier\": \"mitt-navn-prosjekt\"}\nstatus = requests.get(\"https://gbfs.urbansharing.com/oslobysykkel.no/station_status.json\", headers=h).json()" },
+    "avinor-flydata": { lang: "python", install: "pip install requests pandas lxml", code: "import requests, pandas as pd\n\n# Avganger fra Oslo lufthavn neste 7 timer\nr = requests.get(\"https://flydata.avinor.no/XmlFeed.asp\",\n                 params={\"airport\": \"OSL\", \"direction\": \"D\", \"TimeFrom\": 1, \"TimeTo\": 7})\ndf = pd.read_xml(r.content, xpath=\".//flight\")\nprint(df.head())" },
+    "nvdb-ruteplan": { lang: "python", install: "pip install geopandas networkx momepy", code: "import geopandas as gpd, pyogrio, momepy, networkx as nx\n\npath = \"nvdb_ruteplan.sqlite\"  # eller .gdb\nprint(pyogrio.list_layers(path))\nveg = gpd.read_file(path, layer=\"<lenkelag>\")  # velg lenkelaget fra listen over\n\n# Bygg graf og regn korteste vei (lengde i meter)\nG = momepy.gdf_to_nx(veg.explode(index_parts=False), approach=\"primal\")\nnoder = list(G.nodes)\nlengde = nx.shortest_path_length(G, noder[0], noder[100], weight=\"mm_len\")\nprint(round(lengde), \"m\")" },
     huggingface: { lang: "python", install: "pip install datasets", code: "from datasets import load_dataset\n\n# Bytt ut med datasett-ID fra huggingface.co/datasets\nds = load_dataset(\"NbAiLab/NCC\", split=\"train\", streaming=True)\nfor row in ds.take(3):\n    print(row)" },
     kaggle: { lang: "bash", install: "pip install kaggle  # legg API-nøkkel i ~/.kaggle/kaggle.json", code: "kaggle datasets download -d <eier>/<datasett> --unzip -p data/" },
     overture: { lang: "python", install: "pip install duckdb", code: "import duckdb\n\ncon = duckdb.connect()\ncon.sql(\"INSTALL spatial; LOAD spatial; INSTALL httpfs; LOAD httpfs;\")\n# Bygninger i Oslo-området. Sjekk docs.overturemaps.org for siste release-dato.\ndf = con.sql(\"\"\"\n  SELECT id, names.primary AS name, height, ST_AsText(geometry) AS wkt\n  FROM read_parquet('s3://overturemaps-us-west-2/release/<RELEASE>/theme=buildings/type=building/*', hive_partitioning=1)\n  WHERE bbox.xmin > 10.6 AND bbox.xmax < 10.9 AND bbox.ymin > 59.85 AND bbox.ymax < 60.0\n  LIMIT 1000\n\"\"\").df()" },
@@ -122,6 +136,10 @@
       steps.push("Installer utvidelsene «Python» og «Jupyter» for å kjøre koden som notebook (.ipynb).");
       if (ds.login) steps.push("Krever gratis bruker/API-nøkkel – lagre nøkkelen i en .env-fil, ikke i koden.");
       return { steps: steps, code: code, format: usedFormat };
+    }
+
+    if (toolKey === "arcgis" && ARCGIS_SPECIAL[ds.id]) {
+      return { steps: ARCGIS_SPECIAL[ds.id].slice(), code: null, format: ds.formats.indexOf("FGDB") !== -1 ? "FGDB" : ds.formats[0] };
     }
 
     var table = toolKey === "arcgis" ? ARCGIS : toolKey === "qgis" ? QGIS : toolKey === "excel" ? EXCEL : null;
