@@ -110,11 +110,20 @@
     });
   }
 
-  function download(name, content, type) {
-    var blob = new Blob([content], { type: type });
-    var a = el("a", { href: URL.createObjectURL(blob), download: name });
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  // Kopierer innholdet til utklippstavlen og prøver i tillegg å laste ned fil
+  // (nedlasting kan være blokkert når siden vises inne i en annen app).
+  function download(name, content, type, btn) {
+    var label = btn.textContent;
+    var done = function (msg) { btn.textContent = msg; setTimeout(function () { btn.textContent = label; }, 2200); };
+    try {
+      navigator.clipboard.writeText(content).then(function () { done("Kopiert ✓"); }, function () { done("Lastet ned"); });
+    } catch (e) { done("Lastet ned"); }
+    try {
+      var blob = new Blob([content], { type: type });
+      var a = el("a", { href: URL.createObjectURL(blob), download: name });
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    } catch (e) { /* ignorer */ }
   }
 
   $("#export-md").addEventListener("click", function () {
@@ -129,7 +138,7 @@
       if (x.why) md += "- **Formål:** " + x.why + "\n";
       md += "\n";
     });
-    download("datasett.md", md, "text/markdown;charset=utf-8");
+    download("datasett.md", md, "text/markdown;charset=utf-8", this);
   });
   $("#export-csv").addEventListener("click", function () {
     var esc = function (v) { return '"' + String(v || "").replace(/"/g, '""') + '"'; };
@@ -137,11 +146,18 @@
     loadList().forEach(function (x) { rows.push([x.name, x.url, x.provider, x.license, x.tool, x.format, x.why, x.added]); });
     download("datasett.csv", "﻿" + rows.map(function (r) { return r.map(esc).join(";"); }).join("\n"), "text/csv;charset=utf-8");
   });
+  // To-trinns tømming uten dialogboks: første klikk ber om bekreftelse.
+  var clearArmed = null;
   $("#clear-list").addEventListener("click", function () {
-    if (confirm("Tømme hele listen?")) {
-      saveList([]);
-      document.querySelectorAll(".r-save").forEach(function (b) { markSaved(b, false); });
+    var btn = this;
+    if (!clearArmed) {
+      btn.textContent = "Klikk igjen for å tømme";
+      clearArmed = setTimeout(function () { clearArmed = null; btn.textContent = "Tøm"; }, 3000);
+      return;
     }
+    clearTimeout(clearArmed); clearArmed = null; btn.textContent = "Tøm";
+    saveList([]);
+    document.querySelectorAll(".r-save").forEach(function (b) { markSaved(b, false); });
   });
 
   // ------------------------------------------------------------ Veiledning
