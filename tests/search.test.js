@@ -1,0 +1,115 @@
+// Kjør: node tests/search.test.js
+"use strict";
+var assert = require("assert");
+var S = require("../js/search.js");
+var DATA = require("../data/datasets.js");
+var HowTo = require("../js/howto.js");
+
+var passed = 0;
+function test(name, fn) {
+  try { fn(); passed++; console.log("  ✓ " + name); }
+  catch (e) { console.error("  ✗ " + name + "\n    " + e.message); process.exitCode = 1; }
+}
+function ids(res, n) { return res.results.slice(0, n || 3).map(function (r) { return r.dataset.id; }); }
+
+console.log("Datasett-katalog");
+test("alle datasett har påkrevde felter og unike id-er", function () {
+  var seen = {};
+  DATA.forEach(function (d) {
+    ["id", "name", "provider", "region", "url", "description", "license", "updated"].forEach(function (f) {
+      assert.ok(d[f], d.id + " mangler " + f);
+    });
+    assert.ok(/^https:\/\//.test(d.url), d.id + " url må være https");
+    assert.ok(Array.isArray(d.formats) && d.formats.length, d.id + " mangler formats");
+    assert.ok(Array.isArray(d.tags) && Array.isArray(d.categories), d.id + " mangler tags/categories");
+    assert.ok(["Norge", "Europa", "Global"].indexOf(d.region) !== -1, d.id + " ugyldig region");
+    (d.goodFor || []).forEach(function (p) { assert.ok(S.PURPOSES[p], d.id + " ukjent formål " + p); });
+    assert.ok(!seen[d.id], "duplikat id " + d.id);
+    seen[d.id] = true;
+  });
+});
+test("alle formater er kjent av minst ett verktøy eller veiledning", function () {
+  var known = {};
+  Object.keys(S.TOOLS).forEach(function (k) { S.TOOLS[k].formats.forEach(function (f) { known[f] = true; }); });
+  DATA.forEach(function (d) { d.formats.forEach(function (f) {
+    if (f === "Varierer" || f === "SAFE" || f === "Darwin Core" || f === "NeTEx" || f === "XML") return;
+    assert.ok(known[f], d.id + ": ukjent format " + f);
+  }); });
+});
+
+console.log("Søk");
+test("«flom» gir NVE øverst", function () {
+  assert.strictEqual(ids(S.search(DATA, { query: "flom" }), 1)[0], "nve-nedlasting");
+});
+test("engelsk «flood» finner også NVE", function () {
+  assert.ok(ids(S.search(DATA, { query: "flood" }), 3).indexOf("nve-nedlasting") !== -1);
+});
+test("«høydedata» gir hoydedata.no øverst", function () {
+  assert.strictEqual(ids(S.search(DATA, { query: "høydedata" }), 1)[0], "hoydedata");
+});
+test("«befolkning per kommune» gir SSB blant topp 3", function () {
+  var top = ids(S.search(DATA, { query: "befolkning per kommune" }), 3);
+  assert.ok(top.indexOf("ssb-statbank") !== -1 || top.indexOf("ssb-rutenett") !== -1, top.join(","));
+});
+test("formålstekst om ArcGIS oppdager verktøy", function () {
+  var res = S.search(DATA, { query: "flomsoner", purposeText: "analyse i ArcGIS Pro" });
+  assert.strictEqual(res.intent.tool, "arcgis");
+  assert.strictEqual(res.intent.purpose, "analyse");
+});
+test("formålstekst om maskinlæring oppdager formål", function () {
+  var res = S.search(DATA, { query: "satellittbilder", purposeText: "trene en maskinlæringsmodell i Python" });
+  assert.strictEqual(res.intent.purpose, "maskinlaering");
+  assert.strictEqual(res.intent.tool, "vscode");
+  var top = ids(res, 3);
+  assert.ok(top.indexOf("copernicus-dataspace") !== -1 || top.indexOf("usgs-earthexplorer") !== -1, top.join(","));
+});
+test("«ml» treffer ikke html (ordgrense)", function () {
+  assert.deepStrictEqual(S.detectIntent("html-side").purposes, []);
+});
+test("regionfilter Norge viser bare norske datasett", function () {
+  var res = S.search(DATA, { query: "befolkning", region: "Norge" });
+  assert.ok(res.results.length > 0);
+  res.results.forEach(function (r) { assert.strictEqual(r.dataset.region, "Norge"); });
+});
+test("«i Bergen» prioriterer norske datasett", function () {
+  var res = S.search(DATA, { query: "bygninger i Bergen" });
+  assert.strictEqual(res.intent.region, "Norge");
+  assert.strictEqual(res.results[0].dataset.region, "Norge");
+});
+test("Excel-verktøy straffer datasett uten tabellformat", function () {
+  var res = S.search(DATA, { query: "befolkning", tool: "excel" });
+  assert.ok(res.results[0].toolFit > 0, res.results[0].dataset.id);
+});
+test("skjul innlogging fjerner datasett med login", function () {
+  var res = S.search(DATA, { query: "vær temperatur", includeLogin: false });
+  res.results.forEach(function (r) { assert.ok(!r.dataset.login, r.dataset.id); });
+});
+test("tomt søk returnerer alle sortert på kvalitet", function () {
+  var res = S.search(DATA, {});
+  assert.strictEqual(res.results.length, DATA.length);
+  assert.ok(res.results[0].quality >= res.results[res.results.length - 1].quality);
+});
+test("nonsens gir ingen treff", function () {
+  assert.strictEqual(S.search(DATA, { query: "qwxzzy" }).results.length, 0);
+});
+
+console.log("Veiledninger");
+test("hvert datasett har veiledning for alle verktøy", function () {
+  DATA.forEach(function (d) {
+    Object.keys(S.TOOLS).forEach(function (t) {
+      var h = HowTo.forTool(d, t);
+      assert.ok(h && h.steps.length, d.id + " / " + t);
+    });
+  });
+});
+test("VS Code gir Python-kode for filbaserte datasett", function () {
+  var d = DATA.filter(function (x) { return x.id === "hoydedata"; })[0];
+  var h = HowTo.forTool(d, "vscode");
+  assert.ok(h.code && /rasterio/.test(h.code.code));
+});
+test("ArcGIS Pro velger FGDB når tilgjengelig", function () {
+  var d = DATA.filter(function (x) { return x.id === "n50-kartdata"; })[0];
+  assert.strictEqual(HowTo.forTool(d, "arcgis").format, "FGDB");
+});
+
+console.log("\n" + passed + " tester bestått" + (process.exitCode ? " – NOEN FEILET" : ""));
