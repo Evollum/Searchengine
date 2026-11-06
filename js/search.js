@@ -82,7 +82,7 @@
     vegnett: ["vei", "road network", "nettverksanalyse"],
     trafikksikkerhet: ["trafikkulykker", "ulykker", "road safety"],
     trafikkulykker: ["ulykker", "accidents", "trafikksikkerhet"],
-    sykkel: ["bysykkel", "sykkeltelling", "bike"],
+    sykkel: ["bysykkel", "sykkeltelling", "sykkelveg", "sykkelrute", "bike"],
     bysykkel: ["sykkel", "bike sharing", "gbfs"],
     fly: ["flytrafikk", "flyplass", "flights"],
     flytrafikk: ["fly", "air traffic"],
@@ -95,12 +95,38 @@
     bil: ["bilpark", "kjøretøy", "personbil", "vei"],
     "kjøretøy": ["bilpark", "vehicles"],
     "støy": ["noise", "støysone"],
-    mobilitet: ["mobility", "kollektiv", "bysykkel", "trafikk"],
+    mobilitet: ["mobility", "kollektiv", "delt mobilitet", "reisevaner", "pendling", "bysykkel"],
+    mobility: ["mobilitet"],
+    "elsparkesykkel": ["sparkesykkel", "e-scooter", "delt mobilitet", "mikromobilitet"],
+    "elsparkesykler": ["elsparkesykkel", "e-scooter", "delt mobilitet"],
+    sparkesykkel: ["elsparkesykkel", "e-scooter"],
+    mikromobilitet: ["elsparkesykkel", "bysykkel", "delt mobilitet"],
+    bildeling: ["delebil", "car sharing", "delt mobilitet"],
+    delebil: ["bildeling", "car sharing"],
+    pendling: ["pendlere", "arbeidsreiser", "commuting"],
+    pendlere: ["pendling"],
+    arbeidsreiser: ["pendling", "reisevaner"],
+    reisevaner: ["rvu", "reisevaneundersøkelse", "transportmiddelfordeling"],
+    "reisevaneundersøkelse": ["rvu", "reisevaner"],
+    transportmiddelfordeling: ["reisevaner", "modal split", "kollektivandel"],
+    kollektivandel: ["reisevaner", "kollektiv"],
+    gange: ["gående", "fotrute", "gangvei", "fortau"],
+    "gående": ["gange", "gangvei", "fortau"],
+    syklister: ["sykkel", "sykkelveg", "sykkelrute"],
+    sykkelvei: ["sykkelveg", "sykkelrute", "sykkel"],
+    "universell": ["universell utforming", "tilgjengelighet"],
+    rullestol: ["universell utforming", "tilgjengelighet"],
+    parkering: ["parkeringsplass", "parking", "innfartsparkering"],
+    ferje: ["ferjesamband", "ferry"],
+    reiseplanlegger: ["journey planner", "reisesøk", "kollektiv reisetid"],
+    isokron: ["reisetid", "tilgjengelighet", "serviceområde"],
+    "od-matrise": ["pendling", "origin destination", "reisetid"],
+    flytkart: ["pendling", "flow map"],
     ulykker: ["trafikkulykker", "accidents", "trafikksikkerhet"],
     kollektiv: ["buss", "tog", "gtfs", "transit", "holdeplass"],
     buss: ["kollektiv", "gtfs", "holdeplass"],
     tog: ["jernbane", "kollektiv", "gtfs"],
-    tilgjengelighet: ["kollektiv", "vei", "nettverksanalyse", "befolkning"],
+    tilgjengelighet: ["kollektiv", "reisetid", "nettverksanalyse", "universell utforming", "befolkning"],
     bygning: ["bygninger", "building", "buildings", "bygningsomriss", "hus"],
     bygninger: ["bygning", "building"],
     hus: ["bygning", "bolig"],
@@ -176,6 +202,9 @@
     sanntid: ["realtime", "api"]
   };
 
+  // Uten valgt eller oppdaget område får norske datasett et lite forsprang.
+  var PREFERRED_REGION = "Norge";
+
   var STOPWORDS = ["og", "i", "på", "til", "for", "av", "med", "som", "en", "et", "ei", "jeg", "vi", "skal", "vil", "har", "er", "det", "den", "de", "å", "om", "fra", "trenger", "bruke", "lage", "finne", "data", "datasett", "dataset", "datasets", "the", "and", "of", "to", "in", "a", "an", "want", "need", "hvor", "hva", "hvordan", "kan", "meg", "min", "mitt", "mine", "noe", "litt", "gjerne", "eller", "ved", "inn", "ut", "bruk", "laste", "ned", "nedlasting", "about", "over", "under", "mellom", "alle"];
 
   // ---------------------------------------------------------------- Hjelpere
@@ -192,6 +221,12 @@
   function containsPhrase(text, phrase) {
     // Ordgrense-sjekk, slik at f.eks. "ml" ikke treffer "html".
     var re = new RegExp("(^|[^a-z0-9æøå])" + phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "($|[^a-z0-9æøå])", "i");
+    return re.test(text);
+  }
+
+  // Treff på starten av et ord: "flomson" treffer "flomsone", men "gange" treffer ikke "avganger".
+  function startsWord(text, term) {
+    var re = new RegExp("(^|[^a-z0-9æøå])" + term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
     return re.test(text);
   }
 
@@ -293,7 +328,7 @@
     terms.forEach(function (t) {
       var best = 0;
       fields.forEach(function (f) {
-        var hit = t.prefix ? f.text.indexOf(t.term) !== -1 : containsPhrase(f.text, t.term) || (t.term.length >= 5 && f.text.indexOf(t.term) !== -1);
+        var hit = t.prefix ? startsWord(f.text, t.term) : containsPhrase(f.text, t.term) || (t.term.length >= 5 && startsWord(f.text, t.term));
         if (hit && f.w > best) best = f.w;
       });
       if (best > 0) {
@@ -351,6 +386,7 @@
       var regionBoost = 1;
       if (region && ds.region !== region) regionBoost = 0; // eksplisitt filter
       else if (!region && detectedRegion) regionBoost = ds.region === detectedRegion ? 1.35 : 0.8;
+      else if (!region && ds.region === PREFERRED_REGION) regionBoost = 1.15; // lett preferanse for Norge
 
       var score;
       if (hasText) {

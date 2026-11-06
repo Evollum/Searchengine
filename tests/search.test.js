@@ -126,6 +126,28 @@ test("«kø» finner sanntids-/trafikkdata", function () {
   assert.ok(t.indexOf("vegvesen-datex") !== -1 || t.indexOf("trafikkdata") !== -1, t.join(","));
 });
 
+console.log("Mobilitet");
+test("«mobilitet» gir norske mobilitetsdata øverst", function () {
+  var t = topIds("mobilitet", "", "", 3);
+  assert.strictEqual(t[0], "entur-mobility");
+  t.forEach(function (id) { assert.strictEqual(DATA.filter(function (d) { return d.id === id; })[0].region, "Norge"); });
+});
+test("«elsparkesykler» gir Entur Mobility øverst", function () {
+  assert.strictEqual(topIds("elsparkesykler")[0], "entur-mobility");
+});
+test("«pendling» gir SSB pendling øverst", function () {
+  assert.strictEqual(topIds("pendling mellom kommuner", "flytkart i ArcGIS Pro")[0], "ssb-pendling");
+});
+test("«reisevaner» gir RVU øverst", function () { assert.strictEqual(topIds("reisevaner")[0], "rvu"); });
+test("«universell utforming» gir tilgjengelighetsdata", function () { assert.strictEqual(topIds("universell utforming")[0], "tilgjengelighet-uu"); });
+test("«parkering» gir parkeringsregisteret", function () { assert.strictEqual(topIds("parkering")[0], "parkeringsregisteret"); });
+test("«ferje» gir ferjedatabanken", function () { assert.strictEqual(topIds("ferje")[0], "ferjedatabanken"); });
+test("«kollektiv reisetid» finner reiseplanleggeren", function () { assert.ok(topIds("kollektiv reisetid", "", "", 3).indexOf("entur-reiseplan") !== -1); });
+test("«gående» treffer ikke flydata (delord midt i ord)", function () { assert.ok(topIds("gående", "", "", 5).indexOf("avinor-flydata") === -1); });
+test("uten område får norske datasett et forsprang", function () {
+  assert.strictEqual(S.search(DATA, { query: "befolkning" }).results[0].dataset.region, "Norge");
+});
+
 console.log("Veiledninger");
 test("hvert datasett har veiledning for alle verktøy", function () {
   DATA.forEach(function (d) {

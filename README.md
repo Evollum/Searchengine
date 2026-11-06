@@ -38,7 +38,7 @@ Søk kan deles via URL, f.eks. `index.html?q=flomsoner&tool=arcgis`.
 
 ## Katalogen
 
-Rundt 65 håndplukkede kilder – norske (Kartverket/Geonorge, SSB, NVE, NGU,
+Rundt 75 håndplukkede kilder – norske (Kartverket/Geonorge, SSB, NVE, NGU,
 Miljødirektoratet, MET, NIBIO, Statens vegvesen, Entur, Artsdatabanken m.fl.),
 europeiske (Copernicus, Eurostat, EMODnet) og globale (OpenStreetMap, Overture,
 Natural Earth, NASA, USGS, World Bank, Our World in Data, Hugging Face, Kaggle …).
@@ -61,6 +61,22 @@ Trafikk er et eget fagområde med datasett for:
 
 Flere av disse har egne kodeeksempler (f.eks. GraphQL-spørring mot Trafikkdata,
 bysykkelturer med pandas, rutegraf med networkx) og egne ArcGIS-steg for Network Analyst.
+
+### Mobilitet (Norge)
+
+| Behov | Datasett |
+|---|---|
+| Delt mobilitet (elsparkesykler, bysykler, bildeling) | Entur Mobility API (GBFS/GraphQL, alle operatører), Bysykkel |
+| Reisetid med kollektiv / tilgjengelighet | Entur reiseplanlegger (Journey Planner), Entur GTFS, NVDB Ruteplan |
+| Pendling og flytkart | SSB pendling mellom kommuner (tabell 03321) |
+| Reisevaner og transportmiddelfordeling | Den nasjonale reisevaneundersøkelsen (RVU) |
+| Kollektivbruk | SSB kollektivtransport |
+| Gange, sykkel og universell utforming | Turrutebasen, Tilgjengelighet (UU), NVDB gang- og sykkelveg |
+| Parkering, ferje og elbil | Parkeringsregisteret, Ferjedatabanken, NOBIL |
+| By/bygd | SSB tettsteder |
+
+Uten valgt område får norske datasett et lite forsprang i rangeringen
+(`PREFERRED_REGION` i `js/search.js`).
 
 ### Legge til et datasett
 
