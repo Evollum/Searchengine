@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="nb">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Datafinner</title>
+  <meta name="description" content="Søkemotor for åpne datasett med god kvalitet – fortell hva du skal bruke dataene til og hvilket verktøy du bruker.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <h1>Datafinner</h1>
+      <p class="tagline">Finn åpne datasett med god kvalitet – fortell hva du skal bruke dem til, så får du lenke, riktig format og hvordan du åpner dem i verktøyet ditt.</p>
+    </div>
+  </header>
+
+  <main class="wrap layout">
+    <section class="main-col">
+      <form id="search-form" class="search-card" autocomplete="off">
+        <label for="q" class="field-label">Hva leter du etter?</label>
+        <input id="q" name="q" type="search" placeholder="F.eks. flomsoner, høydedata, befolkning per kommune, satellittbilder …">
+
+        <label for="why" class="field-label">Hvorfor / hva skal du bruke datasettet til? <span class="muted">(valgfritt, men gir bedre treff)</span></label>
+        <textarea id="why" name="why" rows="2" placeholder="F.eks. «Masteroppgave om klimatilpasning – analysere hvilke bygninger i Bergen som ligger i flomsone»"></textarea>
+
+        <fieldset class="field">
+          <legend class="field-label">Hvilket verktøy skal du bruke?</legend>
+          <div class="chips" id="tool-chips" role="radiogroup">
+            <label class="chip"><input type="radio" name="tool" value="" checked><span>Automatisk</span></label>
+            <label class="chip"><input type="radio" name="tool" value="arcgis"><span>ArcGIS Pro</span></label>
+            <label class="chip"><input type="radio" name="tool" value="qgis"><span>QGIS</span></label>
+            <label class="chip"><input type="radio" name="tool" value="vscode"><span>VS Code / Python</span></label>
+            <label class="chip"><input type="radio" name="tool" value="excel"><span>Excel / Power BI</span></label>
+          </div>
+        </fieldset>
+
+        <div class="row">
+          <div class="field">
+            <label for="purpose" class="field-label">Formål</label>
+            <select id="purpose" name="purpose">
+              <option value="">Automatisk (fra teksten)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="region" class="field-label">Område</label>
+            <select id="region" name="region">
+              <option value="">Alle</option>
+              <option value="Norge">Norge</option>
+              <option value="Europa">Europa</option>
+              <option value="Global">Globalt</option>
+            </select>
+          </div>
+        </div>
+
+        <label class="check"><input type="checkbox" id="nologin" name="nologin"> Skjul datasett som krever innlogging</label>
+
+        <div class="actions">
+          <button type="submit" class="btn primary">Søk</button>
+          <button type="button" class="btn ghost" id="reset">Nullstill</button>
+        </div>
+
+        <div class="examples">
+          <span class="muted">Prøv:</span>
+          <button type="button" class="link-btn" data-q="flomsoner" data-why="analysere bygninger i flomsone i Bergen" data-tool="arcgis">Flom i ArcGIS Pro</button>
+          <button type="button" class="link-btn" data-q="befolkning per kommune" data-why="lage et kart over befolkningsvekst til en skoleoppgave" data-tool="">Befolkningskart</button>
+          <button type="button" class="link-btn" data-q="satellittbilder" data-why="trene en maskinlæringsmodell for å klassifisere arealdekke" data-tool="vscode">ML på satellittbilder</button>
+          <button type="button" class="link-btn" data-q="temperatur og nedbør" data-why="analysere klimaendringer i Norge med Python" data-tool="vscode">Klimadata i Python</button>
+          <button type="button" class="link-btn" data-q="trafikkmengde rushtid" data-why="analysere kø og timetrafikk på E18 i Python" data-tool="vscode">Trafikkmengde i Python</button>
+          <button type="button" class="link-btn" data-q="kjøretid til sykehus" data-why="nettverksanalyse av tilgjengelighet i ArcGIS Pro" data-tool="arcgis">Kjøretid i ArcGIS Pro</button>
+          <button type="button" class="link-btn" data-q="elsparkesykler og bysykler" data-why="mobilitetsanalyse av delt mobilitet i Oslo" data-tool="vscode">Delt mobilitet</button>
+          <button type="button" class="link-btn" data-q="pendling mellom kommuner" data-why="lage flytkart i ArcGIS Pro" data-tool="arcgis">Pendlingskart</button>
+        </div>
+      </form>
+
+      <div id="interpretation" class="interpretation" aria-live="polite"></div>
+      <div id="results" class="results" aria-live="polite"></div>
+
+      <section id="live" class="live hidden">
+        <div class="live-head">
+          <div>
+            <h2>Søk videre i åpne datakataloger</h2>
+            <p class="muted">Søket over viser en håndplukket liste med kvalitetssjekkede kilder. Her kan du søke direkte i Geonorge, data.europa.eu, Zenodo og Hugging Face. Disse treffene er ikke kvalitetsvurdert.</p>
+          </div>
+          <button type="button" class="btn" id="live-btn">Søk i kataloger</button>
+        </div>
+        <div id="live-results"></div>
+      </section>
+    </section>
+
+    <aside class="side-col">
+      <div class="list-card">
+        <h2>Min liste <span id="list-count" class="count">0</span></h2>
+        <p class="muted small">Lagre datasett sammen med hva du skal bruke dem til. Eksporter som prosjektnotat (Markdown) eller CSV.</p>
+        <ul id="my-list" class="my-list"></ul>
+        <div class="actions small-actions">
+          <button type="button" class="btn small" id="export-md" disabled>Eksporter Markdown</button>
+          <button type="button" class="btn small" id="export-csv" disabled>Eksporter CSV</button>
+          <button type="button" class="btn small ghost" id="clear-list" disabled>Tøm</button>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h2>Slik vurderes kvalitet</h2>
+        <ul class="small">
+          <li><b>Offisiell kilde</b> – publisert av myndighet eller anerkjent institusjon</li>
+          <li><b>Tydelig lisens</b> – åpen lisens som CC BY, NLOD, ODbL eller public domain</li>
+          <li><b>Dokumentasjon</b> – metadata, produktspesifikasjon og beskrivelse</li>
+          <li><b>Vedlikehold</b> – oppdateres jevnlig</li>
+        </ul>
+        <p class="muted small">Datasettene ligger i <code>data/datasets.js</code> – legg gjerne til flere.</p>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="site-footer wrap muted small">
+    Datafinner – åpen kildekode. Sjekk alltid lisens og vilkår hos dataeieren før bruk.
+  </footer>
+
+  <template id="tpl-result">
+    <article class="result">
+      <header class="result-head">
+        <div>
+          <h3 class="r-name"></h3>
+          <div class="r-meta muted small"></div>
+        </div>
+        <div class="r-quality" title="Kvalitetsscore"></div>
+      </header>
+      <p class="r-desc"></p>
+      <div class="r-badges"></div>
+      <p class="r-note small"></p>
+      <div class="r-actions">
+        <a class="btn primary small r-open" target="_blank" rel="noopener">Åpne / last ned ↗</a>
+        <a class="btn small r-api" target="_blank" rel="noopener">API / dokumentasjon ↗</a>
+        <button type="button" class="btn small r-howto-btn" aria-expanded="false">Slik bruker du det</button>
+        <button type="button" class="btn small ghost r-save">+ Min liste</button>
+      </div>
+      <div class="r-howto hidden"></div>
+    </article>
+  </template>
+
+  <script src="data/datasets.js"></script>
+  <script src="js/search.js"></script>
+  <script src="js/howto.js"></script>
+  <script src="js/live.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

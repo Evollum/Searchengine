@@ -1,0 +1,11 @@
+{
+  "name": "datafinner",
+  "version": "1.0.0",
+  "description": "Søkemotor for åpne datasett med god kvalitet – tilpasset formål og verktøy (ArcGIS Pro, QGIS, VS Code/Python, Excel).",
+  "private": true,
+  "scripts": {
+    "test": "node tests/search.test.js",
+    "start": "python3 -m http.server 8000"
+  },
+  "license": "MIT"
+}
