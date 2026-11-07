@@ -436,7 +436,26 @@
     };
   }
 
+  /**
+   * Hvor godt matcher en fritekst et objekt med { name, tags, description }?
+   * Brukes av oppgaveplanleggeren til å kjenne igjen oppgavetyper.
+   */
+  function relevance(text, item) {
+    var terms = expandTokens(tokenize(text));
+    var ds = {
+      name: item.name || "",
+      tags: item.tags || [],
+      categories: item.categories || [],
+      description: item.description || "",
+      provider: item.provider || "",
+      formats: item.formats || []
+    };
+    return textMatchScore(ds, terms);
+  }
+
   var api = {
+    containsPhrase: containsPhrase,
+    relevance: relevance,
     TOOLS: TOOLS,
     PURPOSES: PURPOSES,
     REGIONS: REGIONS,

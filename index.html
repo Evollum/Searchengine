@@ -11,12 +11,69 @@
   <header class="site-header">
     <div class="wrap">
       <h1>Datafinner</h1>
-      <p class="tagline">Finn åpne datasett med god kvalitet – fortell hva du skal bruke dem til, så får du lenke, riktig format og hvordan du åpner dem i verktøyet ditt.</p>
+      <p class="tagline">Beskriv oppgaven, så får du dataene du trenger, et nedlastingsskript, fremgangsmåte og råd om hvordan kartet blir bra. Eller søk direkte blant kvalitetssjekkede åpne datasett.</p>
+      <nav class="tabs-nav" aria-label="Velg visning">
+        <a href="#planlegg" class="tab-link" id="tab-plan" aria-current="page">Planlegg oppgave</a>
+        <a href="#sok" class="tab-link" id="tab-sok">Søk i datasett</a>
+      </nav>
     </div>
   </header>
 
   <main class="wrap layout">
     <section class="main-col">
+      <div id="panel-plan" class="panel">
+        <form id="plan-form" class="search-card" autocomplete="off">
+          <label for="task" class="field-label">Beskriv oppgaven så konkret du kan</label>
+          <textarea id="task" name="task" rows="4" placeholder="F.eks. «Lag et kart over hvilke bygninger i Bergen som ligger i flomsone, til en ROS-analyse. Kartet skal inn i en rapport.»"></textarea>
+
+          <div class="field">
+            <label for="place" class="field-label">Kommune eller fylke <span class="muted">(fylles ut automatisk fra teksten)</span></label>
+            <input id="place" name="place" type="text" list="place-list" placeholder="F.eks. Bergen">
+            <datalist id="place-list"></datalist>
+          </div>
+
+          <fieldset class="field">
+            <legend class="field-label">Hvor skal du jobbe?</legend>
+            <div class="chips" role="radiogroup">
+              <label class="chip"><input type="radio" name="ptool" value="" checked><span>Automatisk</span></label>
+              <label class="chip"><input type="radio" name="ptool" value="arcgis"><span>ArcGIS Pro</span></label>
+              <label class="chip"><input type="radio" name="ptool" value="online"><span>ArcGIS Online</span></label>
+              <label class="chip"><input type="radio" name="ptool" value="qgis"><span>QGIS</span></label>
+              <label class="chip"><input type="radio" name="ptool" value="vscode"><span>VS Code / Python</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend class="field-label">Hva skal du levere?</legend>
+            <div class="chips" role="radiogroup">
+              <label class="chip"><input type="radio" name="pdeliv" value="" checked><span>Automatisk</span></label>
+              <label class="chip"><input type="radio" name="pdeliv" value="rapport"><span>Rapport / PDF</span></label>
+              <label class="chip"><input type="radio" name="pdeliv" value="nett"><span>Nettkart</span></label>
+              <label class="chip"><input type="radio" name="pdeliv" value="dashboard"><span>Dashboard</span></label>
+              <label class="chip"><input type="radio" name="pdeliv" value="presentasjon"><span>Presentasjon</span></label>
+              <label class="chip"><input type="radio" name="pdeliv" value="analyse"><span>Bare analyse</span></label>
+            </div>
+          </fieldset>
+
+          <details class="field available">
+            <summary>Verktøy jeg har tilgang til</summary>
+            <div class="checks" id="available"></div>
+          </details>
+
+          <div class="actions">
+            <button type="submit" class="btn primary">Lag plan</button>
+            <button type="button" class="btn ghost" id="plan-reset">Nullstill</button>
+          </div>
+
+          <div class="examples" id="plan-examples">
+            <span class="muted">Eksempler:</span>
+          </div>
+        </form>
+
+        <div id="plan" aria-live="polite"></div>
+      </div>
+
+      <div id="panel-sok" class="panel" hidden>
       <form id="search-form" class="search-card" autocomplete="off">
         <label for="q" class="field-label">Hva leter du etter?</label>
         <input id="q" name="q" type="search" placeholder="F.eks. flomsoner, høydedata, befolkning per kommune, satellittbilder …">
@@ -86,6 +143,7 @@
         </div>
         <div id="live-results"></div>
       </section>
+      </div>
     </section>
 
     <aside class="side-col">
@@ -140,9 +198,13 @@
   </template>
 
   <script src="data/datasets.js"></script>
+  <script src="data/recipes.js"></script>
   <script src="js/search.js"></script>
   <script src="js/howto.js"></script>
   <script src="js/live.js"></script>
+  <script src="js/planner.js"></script>
+  <script src="js/scriptgen.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/plan-ui.js"></script>
 </body>
 </html>

@@ -53,10 +53,13 @@
   }
   function inList(id) { return loadList().some(function (x) { return x.id === id; }); }
 
-  function toggleSave(ds, btn) {
+  function toggleSave(ds, btn, extra) {
     var list = loadList();
     if (inList(ds.id)) {
       list = list.filter(function (x) { return x.id !== ds.id; });
+    } else if (extra) {
+      list.push({ id: ds.id, name: ds.name, url: ds.url, provider: ds.provider, license: ds.license,
+        tool: extra.tool || "", format: extra.format || "", why: extra.why || "", added: new Date().toISOString().slice(0, 10) });
     } else {
       var tool = currentState.tool;
       list.push({
@@ -78,6 +81,9 @@
     btn.classList.toggle("saved", saved);
     btn.textContent = saved ? "✓ I min liste" : "+ Min liste";
   }
+
+  // Brukes av oppgaveplanleggeren (js/plan-ui.js)
+  window.DatafinnerList = { toggle: toggleSave, has: inList, mark: markSaved };
 
   function renderList() {
     var list = loadList();
