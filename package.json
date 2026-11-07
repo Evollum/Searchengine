@@ -1,10 +1,10 @@
 {
   "name": "datafinner",
   "version": "1.0.0",
-  "description": "Søkemotor for åpne datasett med god kvalitet – tilpasset formål og verktøy (ArcGIS Pro, QGIS, VS Code/Python, Excel).",
+  "description": "Oppgaveplanlegger og søkemotor for åpne datasett: data, nedlastingsskript, fremgangsmåte og kartråd for ArcGIS Pro, ArcGIS Online, QGIS og VS Code/Python.",
   "private": true,
   "scripts": {
-    "test": "node tests/search.test.js",
+    "test": "node tests/search.test.js && node tests/planner.test.js",
     "start": "python3 -m http.server 8000"
   },
   "license": "MIT"

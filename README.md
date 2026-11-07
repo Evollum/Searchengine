@@ -2,18 +2,54 @@
 
 **Åpne siden:** https://evollum.github.io/Searchengine/
 
-Finn åpne datasett med god kvalitet og få direkte lenke til nedlasting.
-Skriv **hva** du leter etter og **hvorfor / hva du skal bruke det til**, velg
-**verktøy** (ArcGIS Pro, QGIS, VS Code / Python eller Excel / Power BI), så får du:
+Datafinner har to deler:
 
-- en rangert liste med kvalitetsvurderte datasett (★ 1–5)
-- lenke til nedlastingsside og eventuelt API
-- hvilke formater som passer i verktøyet ditt (uthevet)
-- steg-for-steg-veiledning for å åpne datasettet i ArcGIS Pro / QGIS / Excel,
-  og ferdig Python-kode for VS Code
-- «Min liste» der du lagrer datasett med formålet ditt og eksporterer
-  som prosjektnotat (Markdown) eller CSV
-- live-søk videre i Geonorge, data.europa.eu, Zenodo og Hugging Face
+### 1. Planlegg oppgave (oppgaveplanlegger)
+
+Beskriv oppgaven med egne ord, for eksempel *«Lag et kart over hvilke bygninger i
+Bergen som ligger i flomsone, til en ROS-analyse i ArcGIS Pro»*. Da får du:
+
+1. **Data du trenger.** Datasettene velges per rolle (fareområde, bygninger, avgrensning,
+   bakgrunnskart …), med alternativer.
+2. **Et skreddersydd nedlastingsprogram** (Python, kun standardbiblioteket). Det henter
+   dataene for kommunen din i riktig format for verktøyet ditt og skriver en LES_MEG.txt
+   med kilder og lisenser. Det kjøres med Python fra ArcGIS Pro, QGIS eller VS Code.
+3. **Fremgangsmåte** steg for steg i ditt verktøy, med tidsestimat: hent data → last inn
+   og avgrens → analyse → symboliser → ferdigstill.
+4. **Karttype og gode eksempler**: hvilken karttype som passer, kartografiske råd,
+   symbolisering i verktøyet og lenker til gode eksempelkart og ferdige tegneregler.
+5. **Sidenotat: hvor bør kartet lages?** ArcGIS Pro, ArcGIS Online, QGIS,
+   VS Code/Python, kepler.gl eller Power BI, vurdert ut fra leveranse, karttype og data.
+   Du kan krysse av for hvilke verktøy du har tilgang til.
+6. **Sjekkliste** før levering (tittel, tegnforklaring, målestokk, kildetekst …).
+
+Planen kan kopieres eller lastes ned som Markdown, og lenken kan deles
+(`?oppgave=...#planlegg`).
+
+Planleggeren kjenner igjen disse oppgavetypene (`data/recipes.js`): naturfare (flom,
+skred, kvikkleire, stormflo), statistikk per kommune, befolkningstetthet,
+trafikkmengde, trafikkulykker, kjøretid og tilgjengelighet, kollektivdekning, pendling,
+delt mobilitet og sykkel, terreng, arealbruk og natur, vær og klima, støy, elbil og
+lading, parkering og universell utforming.
+
+#### Nedlastingsprogrammet
+
+| Kilde | Hva skriptet gjør |
+|---|---|
+| Kartverket kommuneinfo | Finner kommunenummer og lagrer kommunegrensen (WGS84 og UTM33) |
+| Geonorge nedlasting | Finner datasettet, velger kommune → fylke → hele landet, UTM33 og ditt format, bestiller og laster ned |
+| SSB PxWebApi v2 | Henter siste år av tabellen som CSV (avgrenser til kommunen hvis tabellen er for stor) |
+| NVDB API Les v4 | Vegobjekter (ulykker, trafikkmengde, fartsgrenser) som GeoJSON og CSV |
+| Trafikkdata (GraphQL) | Tellepunkter i kommunen med siste ÅDT |
+| Geonorge WCS | Høydemodell (DTM) i fliser |
+| Entur | Rutedata (GTFS) og delte kjøretøy i sanntid |
+| OpenStreetMap (Overpass) | Målpunkter (sykehus, skoler …), veger og reserve for bygninger hvis FKB krever innlogging |
+
+Feiler én kilde, fortsetter skriptet med de andre og skriver hva som feilet.
+
+### 2. Søk i datasett
+
+Søk på hva du leter etter og hvorfor, og velg verktøy. Da får du:
 
 ## Kom i gang
 
@@ -87,11 +123,13 @@ Legg til et objekt i `data/datasets.js` (se feltbeskrivelsen øverst i filen),
 og kjør testene:
 
 ```bash
-npm test     # eller: node tests/search.test.js
+npm test     # søk, planlegger og nedlastingsskript
 ```
 
-Testene sjekker at alle felter er på plass, at formatene er kjente og at
-søket gir forventede treff.
+Testene sjekker at alle felter er på plass, at søket og planleggeren gir forventede
+treff, og at de genererte nedlastingsskriptene er gyldig Python. Hvert skript kjøres
+også ende til ende uten nett, med API-svar i samme format som de ekte API-ene
+(`tests/script_offline_test.py`).
 
 ## Struktur
 
@@ -99,9 +137,13 @@ søket gir forventede treff.
 index.html          brukergrensesnitt
 css/style.css       stil (lys/mørk modus)
 data/datasets.js    den kuraterte katalogen
+data/recipes.js     oppgavetyper, karttyper, plattformer og stedsnavn for planleggeren
 js/search.js        søk, synonymer, verktøy-/formålsgjenkjenning, kvalitetsscore
 js/howto.js         veiledninger per verktøy og format (inkl. Python-kode)
 js/live.js          live-søk i eksterne datakataloger
+js/planner.js       tolker oppgaveteksten og lager planen
+js/scriptgen.js     lager nedlastingsskriptet (Python)
+js/plan-ui.js       visning av planen og fanene
 js/app.js           kobler alt sammen i nettleseren
 tests/              tester for søkelogikken (Node, ingen avhengigheter)
 ```

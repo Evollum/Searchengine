@@ -566,7 +566,7 @@
       url: "https://kartkatalog.geonorge.no/search?text=turrutebasen",
       description: "Landsdekkende database over merkede turruter: fotruter, sykkelruter, skiløyper og andre ruter.",
       categories: ["mobilitet", "natur"],
-      tags: ["sykkelrute", "sykkelruter", "sykkel", "gange", "fotrute", "tursti", "skiløype", "friluftsliv", "aktiv mobilitet", "cycling routes", "hiking"],
+      tags: ["sykkelrute", "sykkelruter", "sykkel", "gange", "fotrute", "tursti", "turstier", "stier", "turløyper", "skiløype", "friluftsliv", "aktiv mobilitet", "cycling routes", "hiking"],
       formats: ["FGDB", "GeoPackage", "SOSI", "WMS"],
       license: "CC BY 4.0",
       updated: "Løpende",

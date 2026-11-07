@@ -13,6 +13,18 @@
   --star: #c98a00;
   --code-bg: #f3f4f6;
   --radius: 10px;
+  --map-bg: #eef2ef;
+  --map-water: #cfe0ea;
+  --map-muted: #b9c0c7;
+  --seq-1: #d9efe6;
+  --seq-2: #a6d8c4;
+  --seq-3: #5fb397;
+  --seq-4: #2b8a6c;
+  --seq-5: #145a46;
+  --hit: #d1495b;
+  --cat-1: #b9d7a8;
+  --cat-2: #f1dd9a;
+  --cat-3: #8fc08a;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -30,6 +42,18 @@
     --warn-soft: #3a2f17;
     --star: #f0b429;
     --code-bg: #11151a;
+    --map-bg: #1f262d;
+    --map-water: #23384a;
+    --map-muted: #4a535d;
+    --seq-1: #1d3a32;
+    --seq-2: #24594a;
+    --seq-3: #2f7e66;
+    --seq-4: #4fb89c;
+    --seq-5: #a8e6d2;
+    --hit: #f07a89;
+    --cat-1: #3e5a35;
+    --cat-2: #6b5c2a;
+    --cat-3: #2f5a35;
   }
 }
 :root[data-theme="dark"] {
@@ -47,6 +71,18 @@
   --warn-soft: #3a2f17;
   --star: #f0b429;
   --code-bg: #11151a;
+  --map-bg: #1f262d;
+  --map-water: #23384a;
+  --map-muted: #4a535d;
+  --seq-1: #1d3a32;
+  --seq-2: #24594a;
+  --seq-3: #2f7e66;
+  --seq-4: #4fb89c;
+  --seq-5: #a8e6d2;
+  --hit: #f07a89;
+  --cat-1: #3e5a35;
+  --cat-2: #6b5c2a;
+  --cat-3: #2f5a35;
 }
 
 * { box-sizing: border-box; }
@@ -80,7 +116,7 @@ h2 { font-size: 1.05rem; }
 .search-card { padding: 20px; }
 .field-label { display: block; font-weight: 600; margin: 14px 0 6px; }
 .search-card > .field-label:first-child { margin-top: 0; }
-input[type="search"], textarea, select {
+input[type="search"], input[type="text"], textarea, select {
   width: 100%;
   font: inherit;
   color: var(--text);
@@ -198,3 +234,85 @@ pre { background: var(--code-bg); border: 1px solid var(--border); padding: 12px
 .site-footer { padding-block: 32px; }
 
 .main-col, .side-col { min-width: 0; }
+
+/* ---------------------------------------------------------------- Faner */
+.tabs-nav { display: flex; gap: 6px; margin-top: 18px; flex-wrap: wrap; }
+.tab-link {
+  padding: 8px 16px; border-radius: 999px; text-decoration: none; font-weight: 600;
+  color: var(--text); border: 1px solid var(--border); background: var(--surface);
+}
+.tab-link[aria-current="page"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.tab-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.panel { display: grid; gap: 18px; }
+.panel[hidden] { display: none; }
+
+/* ---------------------------------------------------------------- Planskjema */
+.available summary { cursor: pointer; font-weight: 600; margin-top: 14px; }
+.checks { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 6px; }
+.checks .check { margin-top: 4px; }
+#task { font-size: 1.02rem; }
+
+/* ---------------------------------------------------------------- Plan */
+#plan { display: grid; gap: 14px; scroll-margin-top: 12px; }
+#plan:empty { display: none; }
+.plan-head, .plan-section {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px 20px; min-width: 0;
+}
+.plan-head h2 { font-size: 1.45rem; text-wrap: balance; }
+.plan-head p { margin: 6px 0 0; }
+.eyebrow { margin: 0; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.plan-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.plan-pills .pill { margin: 0; }
+.alt-recipes { margin-top: 10px !important; }
+.warn-text { color: var(--warn); }
+.plan-section h3 { display: flex; align-items: center; gap: 10px; font-size: 1.1rem; margin-bottom: 10px; }
+.step-num {
+  display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent); color: var(--accent-ink); font-size: 0.85rem; flex: none;
+}
+.plan-section p { margin: 8px 0; }
+.plan-section ul { padding-left: 20px; margin: 6px 0; }
+
+.data-list { list-style: none; padding: 0 !important; margin: 0; display: grid; gap: 10px; }
+.data-item { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; background: var(--surface-2); min-width: 0; }
+.data-role { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.data-main { margin-top: 2px; }
+.data-main a { font-weight: 600; }
+.data-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+.data-meta .r-save { margin-left: auto; }
+.data-item p { margin: 6px 0 0; }
+
+.code-details { margin-top: 10px; }
+.code-details summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+.code-details { min-width: 0; max-width: 100%; }
+.code-details pre, .phase-steps pre { max-height: 420px; overflow: auto; max-width: 100%; }
+.plan-section > *, .phase > * { min-width: 0; max-width: 100%; }
+
+.phases { list-style: none; padding: 0 !important; margin: 8px 0 0; display: grid; gap: 10px; counter-reset: fase; }
+.phase { border-left: 3px solid var(--accent); padding: 2px 0 2px 14px; counter-increment: fase; min-width: 0; }
+.phase-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.phase-head b::before { content: counter(fase) ". "; color: var(--accent); }
+.time { font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.phase-steps { margin: 6px 0 0; }
+.phase-steps li { margin: 3px 0; }
+
+.maptype { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 640px) { .maptype { grid-template-columns: 1fr; } }
+.maptype-figure svg { width: 100%; max-width: 100%; height: auto; display: block; border-radius: 8px; }
+.maptype h4 { margin: 0 0 4px; font-size: 1rem; }
+.examples-list li { margin: 3px 0; }
+
+.sidenote { border-style: dashed; background: var(--surface-2); }
+.sidenote h3 { margin-bottom: 4px; }
+.platforms { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 10px; }
+.platform { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; min-width: 0; }
+.platform h4 { margin: 2px 0 4px; font-size: 1.05rem; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.platform-others li { margin: 3px 0; }
+
+.checklist { list-style: none; padding: 0 !important; }
+.checklist .check { margin-top: 6px; align-items: flex-start; }
+.checklist input { margin-top: 4px; }
+.plan-export { margin-top: 0; }
+.plan-head, .plan-section { overflow-wrap: anywhere; }
+.plan-section .btn { max-width: 100%; white-space: normal; text-align: center; }
