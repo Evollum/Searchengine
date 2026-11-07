@@ -1,5 +1,7 @@
 # Datafinner – søkemotor for åpne datasett
 
+**Åpne siden:** https://evollum.github.io/Searchengine/
+
 Finn åpne datasett med god kvalitet og få direkte lenke til nedlasting.
 Skriv **hva** du leter etter og **hvorfor / hva du skal bruke det til**, velg
 **verktøy** (ArcGIS Pro, QGIS, VS Code / Python eller Excel / Power BI), så får du:
@@ -23,7 +25,8 @@ Ingen installasjon eller byggesteg – det er en statisk nettside.
 python3 -m http.server 8000   # → http://localhost:8000
 ```
 
-Kan publiseres gratis med **GitHub Pages** (Settings → Pages → Deploy from branch → `main` / root).
+Publiseres med **GitHub Pages** (Settings → Pages → Deploy from a branch → `main` / `(root)`).
+Hver gang `main` oppdateres, publiseres siden på nytt automatisk.
 
 ## Slik fungerer søket
 
