@@ -156,6 +156,17 @@
           <button type="button" class="btn small" id="export-csv" disabled>Eksporter CSV</button>
           <button type="button" class="btn small ghost" id="clear-list" disabled>Tøm</button>
         </div>
+        <div class="list-transfer">
+          <button type="button" class="btn small" id="list-link" disabled>Ta med listen til en annen PC</button>
+          <div id="list-link-box" hidden>
+            <p class="muted small">Åpne denne lenken på den andre PC-en, så legges datasettene og notatene dine inn der:</p>
+            <div class="link-row">
+              <input id="list-link-url" type="text" readonly aria-label="Lenke til listen">
+              <button type="button" class="btn small" id="list-link-copy">Kopier</button>
+            </div>
+          </div>
+          <p id="list-notice" class="small notice" hidden></p>
+        </div>
       </div>
 
       <div class="info-card">

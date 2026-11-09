@@ -316,3 +316,10 @@ pre { background: var(--code-bg); border: 1px solid var(--border); padding: 12px
 .plan-export { margin-top: 0; }
 .plan-head, .plan-section { overflow-wrap: anywhere; }
 .plan-section .btn { max-width: 100%; white-space: normal; text-align: center; }
+
+/* ---------------------------------------------------------------- Flytte listen */
+.list-transfer { margin-top: 12px; display: grid; gap: 8px; }
+.list-transfer p { margin: 0; }
+.link-row { display: flex; gap: 6px; margin-top: 6px; }
+.link-row input { min-width: 0; flex: 1; font-size: 0.8rem; padding: 6px 8px; }
+.notice { background: var(--accent-soft); border-radius: 6px; padding: 6px 10px; }
