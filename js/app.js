@@ -90,7 +90,8 @@
     var ul = $("#my-list");
     ul.textContent = "";
     $("#list-count").textContent = list.length;
-    ["#export-md", "#export-csv", "#clear-list"].forEach(function (s) { $(s).disabled = !list.length; });
+    ["#export-md", "#export-csv", "#clear-list", "#list-link"].forEach(function (s) { $(s).disabled = !list.length; });
+    $("#list-link-box").hidden = true;
     if (!list.length) {
       ul.appendChild(el("li", { class: "muted small", text: "Ingen datasett lagret ennå." }));
       return;
@@ -152,6 +153,74 @@
     loadList().forEach(function (x) { rows.push([x.name, x.url, x.provider, x.license, x.tool, x.format, x.why, x.added]); });
     download("datasett.csv", "﻿" + rows.map(function (r) { return r.map(esc).join(";"); }).join("\n"), "text/csv;charset=utf-8");
   });
+  // ------------------------------------------------------------ Ta med listen til en annen PC
+  // Listen ligger bare i nettleseren. Lenken bærer den med seg (kodet i adressen),
+  // slik at den kan åpnes på en hvilken som helst PC uten innlogging.
+  var SITE_URL = "https://evollum.github.io/Searchengine/";
+
+  function encodeList(list) {
+    var compact = list.map(function (x) { return [x.id, x.why || "", x.tool || "", x.format || "", x.added || ""]; });
+    var b64 = btoa(unescape(encodeURIComponent(JSON.stringify(compact))));
+    return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+
+  function decodeList(code) {
+    var b64 = code.replace(/-/g, "+").replace(/_/g, "/");
+    while (b64.length % 4) b64 += "=";
+    var compact = JSON.parse(decodeURIComponent(escape(atob(b64))));
+    return compact.map(function (r) {
+      var ds = DATA.filter(function (d) { return d.id === r[0]; })[0];
+      if (!ds) return null;
+      return { id: ds.id, name: ds.name, url: ds.url, provider: ds.provider, license: ds.license,
+        why: r[1] || "", tool: r[2] || "", format: r[3] || "", added: r[4] || new Date().toISOString().slice(0, 10) };
+    }).filter(Boolean);
+  }
+
+  function listLink() {
+    var base = /^https?:$/.test(location.protocol) ? location.origin + location.pathname : SITE_URL;
+    return base + "?liste=" + encodeList(loadList()) + "#planlegg";
+  }
+
+  $("#list-link").addEventListener("click", function () {
+    var box = $("#list-link-box");
+    $("#list-link-url").value = listLink();
+    box.hidden = !box.hidden;
+    if (!box.hidden) $("#list-link-url").select();
+  });
+  $("#list-link-copy").addEventListener("click", function () {
+    var btn = this, input = $("#list-link-url");
+    var done = function (msg) { btn.textContent = msg; setTimeout(function () { btn.textContent = "Kopier"; }, 2000); };
+    try {
+      navigator.clipboard.writeText(input.value).then(function () { done("Kopiert ✓"); }, function () { input.select(); done("Trykk Ctrl+C"); });
+    } catch (e) { input.select(); done("Trykk Ctrl+C"); }
+  });
+
+  function importFromUrl() {
+    var params = new URLSearchParams(location.search);
+    var code = params.get("liste");
+    if (!code) return;
+    var notice = $("#list-notice");
+    try {
+      var incoming = decodeList(code);
+      var list = loadList();
+      var added = 0;
+      incoming.forEach(function (x) {
+        if (list.some(function (y) { return y.id === x.id; })) return;
+        list.push(x); added++;
+      });
+      saveList(list);
+      notice.textContent = added
+        ? added + " datasett er lagt til i listen fra lenken."
+        : "Alle datasettene fra lenken lå allerede i listen.";
+    } catch (e) {
+      notice.textContent = "Lenken til listen er ufullstendig. Kopier hele lenken på nytt fra den andre PC-en.";
+    }
+    notice.hidden = false;
+    params.delete("liste");
+    var qs = params.toString();
+    try { history.replaceState(null, "", location.pathname + (qs ? "?" + qs : "") + location.hash); } catch (e) { /* file:// */ }
+  }
+
   // To-trinns tømming uten dialogboks: første klikk ber om bekreftelse.
   var clearArmed = null;
   $("#clear-list").addEventListener("click", function () {
@@ -382,6 +451,7 @@
   if (params.get("region")) regionEl.value = params.get("region");
   nologinEl.checked = params.get("nologin") === "1";
 
+  importFromUrl();
   renderList();
   run(false);
 })();
